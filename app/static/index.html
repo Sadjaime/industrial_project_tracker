@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Industrial Project Tracker: plan engineering projects and track their tasks.">
+  <title>Industrial Project Tracker</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="/static/js/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="app-header">
+    <div class="app-header__inner">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">IPT</span>
+        <div>
+          <p class="eyebrow">Engineering operations</p>
+          <h1>Industrial Project Tracker</h1>
+        </div>
+      </div>
+      <p class="app-header__tagline">Plan projects. Track tasks. Deliver with clarity.</p>
+    </div>
+  </header>
+
+  <main id="main-content" class="layout">
+    <section class="overview" aria-labelledby="overview-heading">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Portfolio</p>
+          <h2 id="overview-heading">Overview</h2>
+        </div>
+        <button id="refresh-button" class="btn btn--secondary" type="button">Refresh data</button>
+      </div>
+
+      <div class="stat-grid" aria-label="Project and task summary" aria-live="polite">
+        <article class="stat-card">
+          <p class="stat-card__label">Projects</p>
+          <p id="project-count" class="stat-card__value">—</p>
+          <p class="stat-card__note">In the tracker</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-card__label">Open tasks</p>
+          <p id="open-task-count" class="stat-card__value">—</p>
+          <p class="stat-card__note">Not completed</p>
+        </article>
+        <article class="stat-card">
+          <p class="stat-card__label">Completed tasks</p>
+          <p id="completed-task-count" class="stat-card__value">—</p>
+          <p class="stat-card__note">Delivered</p>
+        </article>
+      </div>
+    </section>
+
+    <div id="global-alert" class="alert alert--error" role="alert" hidden>
+      <p id="global-alert-message"></p>
+      <button id="global-alert-dismiss" class="alert__dismiss" type="button" aria-label="Dismiss error message">Dismiss</button>
+    </div>
+
+    <div class="workspace">
+      <section class="panel projects-panel" id="projects-panel" aria-labelledby="projects-heading">
+        <div class="panel__header">
+          <div>
+            <p class="eyebrow">Portfolio</p>
+            <h2 id="projects-heading">Projects</h2>
+          </div>
+          <button id="new-project-button" class="btn btn--primary" type="button">New project</button>
+        </div>
+        <div class="panel__body">
+          <p id="projects-loading" class="loading-state" role="status">
+            <span class="spinner" aria-hidden="true"></span>
+            Loading projects…
+          </p>
+          <p id="projects-empty" class="empty-state" hidden>
+            No projects yet. Create your first project to begin.
+          </p>
+          <ul id="project-list" class="project-list" aria-label="Projects"></ul>
+        </div>
+      </section>
+
+      <section class="panel project-panel" id="project-panel" aria-label="Project workspace">
+        <div id="no-project-state" class="empty-state empty-state--large">
+          <p class="empty-state__eyebrow">Project workspace</p>
+          <h2 id="no-project-title">Select a project</h2>
+          <p id="no-project-message">Choose a project from the list to review its details and tasks.</p>
+        </div>
+
+        <div id="project-view" hidden>
+          <header class="project-header">
+            <div class="project-header__main">
+              <p class="eyebrow">Project workspace</p>
+              <div class="project-header__title-row">
+                <h2 id="project-detail-name"></h2>
+                <span id="project-detail-status" class="badge"></span>
+              </div>
+              <p id="project-detail-description" class="project-description"></p>
+              <div class="project-meta">
+                <span>Created <time id="project-detail-created"></time></span>
+                <span id="project-detail-summary"></span>
+              </div>
+            </div>
+            <div class="project-actions">
+              <button id="edit-project-button" class="btn btn--secondary" type="button">Edit project</button>
+              <button id="delete-project-button" class="btn btn--danger-ghost" type="button">Delete</button>
+            </div>
+          </header>
+
+          <div class="task-toolbar">
+            <div class="task-toolbar__heading">
+              <h3>Tasks</h3>
+              <span id="task-count" class="count"></span>
+            </div>
+            <button id="new-task-button" class="btn btn--primary" type="button">New task</button>
+          </div>
+
+          <form id="task-filters" class="filter-bar" aria-label="Task filters">
+            <div class="field field--compact">
+              <label for="filter-status">Filter by status</label>
+              <select id="filter-status" name="status">
+                <option value="">All statuses</option>
+                <option value="planned">Planned</option>
+                <option value="in_progress">In progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div class="field field--compact">
+              <label for="filter-priority">Filter by priority</label>
+              <select id="filter-priority" name="priority">
+                <option value="">All priorities</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <button id="clear-filters-button" class="btn btn--link" type="button">Clear filters</button>
+          </form>
+
+          <div id="detail-alert" class="alert alert--error" role="alert" hidden>
+            <p id="detail-alert-message"></p>
+          </div>
+
+          <p id="tasks-loading" class="loading-state" role="status" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            Loading tasks…
+          </p>
+          <p id="tasks-empty" class="empty-state" hidden></p>
+          <ul id="task-list" class="task-list" aria-label="Tasks for the selected project"></ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <p>Industrial Project Tracker <span aria-hidden="true">·</span> Local engineering portfolio</p>
+    <a href="/docs">API documentation</a>
+  </footer>
+
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog id="project-dialog" class="dialog" aria-labelledby="project-dialog-title">
+    <form id="project-form" class="dialog__form" novalidate>
+      <div class="dialog__header">
+        <div>
+          <p class="eyebrow">Portfolio</p>
+          <h2 id="project-dialog-title">New project</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Close project dialog">×</button>
+      </div>
+
+      <div class="dialog__body">
+        <div id="project-form-alert" class="form-alert" role="alert" hidden></div>
+        <input id="project-id" type="hidden">
+
+        <div class="field">
+          <label for="project-name">Project name (required)</label>
+          <input id="project-name" name="name" type="text" maxlength="120" required autocomplete="off" aria-describedby="project-name-hint">
+          <p id="project-name-hint" class="field__hint">Use a clear name, up to 120 characters.</p>
+        </div>
+
+        <div class="field">
+          <label for="project-description">Description (optional)</label>
+          <textarea id="project-description" name="description" rows="4" placeholder="Scope, objective, or important context"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="project-status">Status</label>
+          <select id="project-status" name="status">
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="dialog__footer">
+        <button class="btn btn--secondary" type="button" data-close-dialog>Cancel</button>
+        <button id="project-submit-button" class="btn btn--primary" type="submit">Create project</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="task-dialog" class="dialog" aria-labelledby="task-dialog-title" aria-describedby="task-dialog-project">
+    <form id="task-form" class="dialog__form" novalidate>
+      <div class="dialog__header">
+        <div>
+          <p class="eyebrow">Task</p>
+          <h2 id="task-dialog-title">New task</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Close task dialog">×</button>
+      </div>
+
+      <div class="dialog__body">
+        <div id="task-form-alert" class="form-alert" role="alert" hidden></div>
+        <p id="task-dialog-project" class="dialog__context"></p>
+        <input id="task-id" type="hidden">
+
+        <div class="field">
+          <label for="task-title">Task title (required)</label>
+          <input id="task-title" name="title" type="text" maxlength="150" required autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label for="task-description">Description (optional)</label>
+          <textarea id="task-description" name="description" rows="3" placeholder="What needs to be done?"></textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="task-status">Status</label>
+            <select id="task-status" name="status">
+              <option value="planned">Planned</option>
+              <option value="in_progress">In progress</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="task-priority">Priority</label>
+            <select id="task-priority" name="priority">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="task-due-date">Due date (optional)</label>
+          <input id="task-due-date" name="due_date" type="date">
+        </div>
+      </div>
+
+      <div class="dialog__footer">
+        <button class="btn btn--secondary" type="button" data-close-dialog>Cancel</button>
+        <button id="task-submit-button" class="btn btn--primary" type="submit">Create task</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="dialog dialog--compact" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="dialog__form">
+      <div class="dialog__header">
+        <div>
+          <p class="eyebrow">Confirmation</p>
+          <h2 id="confirm-title">Delete item?</h2>
+        </div>
+      </div>
+      <div class="dialog__body">
+        <p id="confirm-message"></p>
+      </div>
+      <div class="dialog__footer">
+        <button id="confirm-cancel-button" class="btn btn--secondary" type="button">Cancel</button>
+        <button id="confirm-accept-button" class="btn btn--danger" type="button">Delete</button>
+      </div>
+    </div>
+  </dialog>
+</body>
+</html>
